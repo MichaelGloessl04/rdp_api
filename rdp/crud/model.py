@@ -1,10 +1,7 @@
 from typing import List
-from typing import Optional
 from sqlalchemy import ForeignKey, UniqueConstraint
-from sqlalchemy import String, Float, DateTime
 
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.orm import sessionmaker
 
 
 class Base(DeclarativeBase):
@@ -31,6 +28,7 @@ class Value(Base):
     time: Mapped[int] = mapped_column()
     value: Mapped[float] = mapped_column()
     value_type_id: Mapped[int] = mapped_column(ForeignKey("value_type.id"))
+    device_id: Mapped[int] = mapped_column(ForeignKey("device.id"))
 
     value_type: Mapped["ValueType"] = relationship(back_populates="values")
 
@@ -39,4 +37,20 @@ class Value(Base):
     )
 
     def __repr__(self) -> str:
-        return f"Value(id={self.id!r}, value_time={self.time!r} value_type={self.value_type.type_name!r}, value={self.value})"
+        return f"Value(id={self.id!r}, value_time={self.time!r}, " + \
+            f"value_type={self.value_type.type_name!r}, value={self.value})"
+
+
+class Device(Base):
+    __tablename__ = "device"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    location: Mapped[str]
+
+    __table_args__ = (
+        UniqueConstraint("name", "location", name="value integrity"),
+    )
+
+    def __repr__(self) -> str:
+        return f"Device(id={self.id!r}, name={self.name!r}, " + \
+            f"location=({self.name!r}))"

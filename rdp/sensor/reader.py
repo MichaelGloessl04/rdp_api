@@ -47,7 +47,7 @@ class Reader:
                     value[0],
                 )
                 try:
-                    self._crud.add_value(value_time, type_num, value[0])
+                    self._crud.add_value(value_time, type_num, value[0], 0)
                 except self._crud.IntegrityError:
                     logger.info("All Values read")
                     break
