@@ -129,6 +129,16 @@ def read_devices() -> List[ApiTypes.Device]:
     return crud.get_devices()
 
 
+@app.get("/average/{type_id}/")
+def get_average(type_id, start: int = None, end: int = None) -> float:
+    if (bool(start) ^ bool(end)):
+        return 0  # TODO: throw error
+
+    values = get_values(type_id, start, end)
+
+    return sum([value.value for value in values]) / len(values)
+
+
 @app.on_event("startup")
 async def startup_event() -> None:
     """start the character device reader
