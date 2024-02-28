@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from .model import Base, Value, ValueType, Device
+from .model import Base, Device, Value, ValueType
 
 
 class Crud:
@@ -38,8 +38,8 @@ class Crud:
         with Session(self._engine) as session:
             stmt = select(ValueType).where(ValueType.id == value_type_id)
             db_type = None
-            for type in session.scalars(stmt):
-                db_type = type
+            for value_type in session.scalars(stmt):
+                db_type = value_type
             if db_type is None:
                 db_type = ValueType(id=value_type_id)
             if value_type_name:

@@ -1,11 +1,12 @@
+import logging
 from typing import List
 
 from fastapi import FastAPI, HTTPException
 
+from rdp.crud import Crud, create_engine
 from rdp.sensor import Reader
-from rdp.crud import create_engine, Crud
+
 from . import api_types as ApiTypes
-import logging
 
 logger = logging.getLogger("rdp.api")
 app = FastAPI()
@@ -32,8 +33,8 @@ def read_types() -> List[ApiTypes.ValueType]:
     return crud.get_value_types()
 
 
-@app.get("/type/{id}/")
-def read_type(id: int) -> ApiTypes.ValueType:
+@app.get("/type/{type_id}/")
+def read_type(type_id: int) -> ApiTypes.ValueType:
     """returns an explicit value type identified by id
 
     Args:
@@ -53,8 +54,11 @@ def read_type(id: int) -> ApiTypes.ValueType:
         raise HTTPException(status_code=404, detail="Item not found")
 
 
-@app.put("/type/{id}/")
-def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
+@app.put("/type/{type_id}/")
+def put_type(
+    type_id,
+    value_type: ApiTypes.ValueTypeNoID
+) -> ApiTypes.ValueType:
     """PUT request to a special valuetype. This api call is used to change a
     value type object.
 
@@ -111,7 +115,7 @@ def get_values(
         values = crud.get_values(type_id, start, end)
         return values
     except crud.NoResultFound:
-        raise HTTPException(status_code=404, deltail="Item not found")
+        raise HTTPException(status_code=404, detail="Item not found")
 
 
 @app.get("/device/")
