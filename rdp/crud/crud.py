@@ -146,10 +146,9 @@ class Crud:
             logging.error(start)
             logging.error(stmt)
 
-            obj = session.execute(stmt).scalars().all()
+            obj = list(session.execute(stmt).scalars().all())
 
             if not asc:
-                obj = list(obj)
                 obj.reverse()
 
             return obj
