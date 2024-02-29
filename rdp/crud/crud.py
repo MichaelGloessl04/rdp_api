@@ -113,7 +113,8 @@ class Crud:
         value_type_id: int = None,
         start: int = None,
         end: int = None,
-        order_attr: str = "time"
+        order_attr: str = "value_type_id",
+        asc: bool = True
     ) -> List[Value]:
         """Get Values from database.
 
@@ -145,7 +146,13 @@ class Crud:
             logging.error(start)
             logging.error(stmt)
 
-            return session.execute(stmt).scalars().all()
+            obj = session.execute(stmt).scalars().all()
+
+            if not asc:
+                obj = list(obj)
+                obj.reverse()
+
+            return obj
 
     def get_devices(self) -> List[Device]:
         """Get all configured devices
