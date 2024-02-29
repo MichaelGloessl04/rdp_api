@@ -143,6 +143,7 @@ class Crud:
             if order_attr:
                 order_column = getattr(Value, order_attr)
                 stmt = stmt.order_by(order_column)
+
             logging.error(start)
             logging.error(stmt)
 

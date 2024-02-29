@@ -91,7 +91,9 @@ def put_type(
 def get_values(
     type_id: int = None,
     start: int = None,
-    end: int = None
+    end: int = None,
+    order: str = None,
+    asc: bool = None
 ) -> List[ApiTypes.Value]:
     """Get values from the database. The default is to return all available
     values. This result can be filtered.
@@ -112,7 +114,7 @@ def get_values(
     """
     global crud
     try:
-        values = crud.get_values(type_id, start, end)
+        values = crud.get_values(type_id, start, end, order, asc)
         return values
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
