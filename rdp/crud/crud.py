@@ -109,7 +109,11 @@ class Crud:
             return session.scalars(stmt).one()
 
     def get_values(
-        self, value_type_id: int = None, start: int = None, end: int = None
+        self,
+        value_type_id: int = None,
+        start: int = None,
+        end: int = None,
+        order_attr: str = "time"
     ) -> List[Value]:
         """Get Values from database.
 
@@ -135,7 +139,9 @@ class Crud:
                 stmt = stmt.where(Value.time >= start)
             if end is not None:
                 stmt = stmt.where(Value.time <= end)
-            stmt = stmt.order_by(Value.time)
+            if order_attr:
+                order_column = getattr(Value, order_attr)
+                stmt = stmt.order_by(order_column)
             logging.error(start)
             logging.error(stmt)
 
