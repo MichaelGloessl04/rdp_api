@@ -113,10 +113,10 @@ class Crud:
     ) -> List[Value]:
         """Get Values from database.
 
-        The result can be filtered by the following paramater:
+        The result can be filtered by the following parameters:
 
         Args:
-            value_type_id (int, optional): If set, only value of this given
+            value_type_id (int, optional): If set, only values of this given
             type will be returned. Defaults to None.
             start (int, optional): If set, only values with a timestamp as
             least as big as start are returned. Defaults to None.
@@ -124,7 +124,7 @@ class Crud:
             as big as end are returned. Defaults to None.
 
         Returns:
-            List[Value]: _description_
+            List[Value]: List of values matching the criteria.
         """
         with Session(self._engine) as session:
             stmt = select(Value)
@@ -139,7 +139,7 @@ class Crud:
             logging.error(start)
             logging.error(stmt)
 
-            return session.scalars(stmt).all()
+            return session.execute(stmt).scalars().all()
 
     def get_devices(self) -> List[Device]:
         """Get all configured devices

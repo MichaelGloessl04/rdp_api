@@ -49,7 +49,7 @@ def read_type(type_id: int) -> ApiTypes.ValueType:
     """
     global crud
     try:
-        return crud.get_value_type(id)
+        return crud.get_value_type(type_id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -78,11 +78,11 @@ def put_type(
     global crud
     try:
         crud.add_or_update_value_type(
-            id,
+            type_id,
             value_type_name=value_type.type_name,
             value_type_unit=value_type.type_unit
         )
-        return read_type(id)
+        return read_type(type_id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -132,11 +132,14 @@ def read_devices() -> List[ApiTypes.Device]:
 @app.get("/average/{type_id}/")
 def get_average(type_id, start: int = None, end: int = None) -> float:
     if (bool(start) ^ bool(end)):
-        return 0  # TODO: throw error
+        raise ValueError("Both start and end need to be a valid timestamp.")
 
-    values = get_values(type_id, start, end)
+    values = crud.get_values(type_id, start, end)
 
-    return sum([value.value for value in values]) / len(values)
+    if (len(values) > 0):
+        return sum([value.value for value in values]) / len(values)
+    else:
+        return 0
 
 
 @app.on_event("startup")
