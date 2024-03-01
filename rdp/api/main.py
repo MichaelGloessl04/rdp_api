@@ -6,6 +6,7 @@ from rdp.sensor import Reader
 from rdp.crud import create_engine, Crud
 from . import api_types as ApiTypes
 import logging
+import time
 
 logger = logging.getLogger("rdp.api")
 app = FastAPI()
@@ -110,6 +111,19 @@ def get_values(
     try:
         values = crud.get_values(type_id, start, end)
         return values
+    except crud.NoResultFound:
+        raise HTTPException(status_code=404, deltail="Item not found")
+
+
+@app.post("/value/")
+def post_value(
+    value_value: float = None,
+    value_type: float = None,
+    value_device: float = None
+) -> None:
+    global crud
+    try:
+        crud.add_value(int(time.time()), value_type, value_value, value_device)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, deltail="Item not found")
 
