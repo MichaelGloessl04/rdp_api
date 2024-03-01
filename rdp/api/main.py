@@ -1,11 +1,12 @@
+import logging
 from typing import List
 
 from fastapi import FastAPI, HTTPException
 
+from rdp.crud import Crud, create_engine
 from rdp.sensor import Reader
-from rdp.crud import create_engine, Crud
+
 from . import api_types as ApiTypes
-import logging
 import time
 
 logger = logging.getLogger("rdp.api")
@@ -33,8 +34,8 @@ def read_types() -> List[ApiTypes.ValueType]:
     return crud.get_value_types()
 
 
-@app.get("/type/{id}/")
-def read_type(id: int) -> ApiTypes.ValueType:
+@app.get("/type/{type_id}/")
+def read_type(type_id: int) -> ApiTypes.ValueType:
     """returns an explicit value type identified by id
 
     Args:
@@ -49,13 +50,16 @@ def read_type(id: int) -> ApiTypes.ValueType:
     """
     global crud
     try:
-        return crud.get_value_type(id)
+        return crud.get_value_type(type_id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
 
-@app.put("/type/{id}/")
-def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
+@app.put("/type/{type_id}/")
+def put_type(
+    type_id,
+    value_type: ApiTypes.ValueTypeNoID
+) -> ApiTypes.ValueType:
     """PUT request to a special valuetype. This api call is used to change a
     value type object.
 
@@ -75,11 +79,11 @@ def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
     global crud
     try:
         crud.add_or_update_value_type(
-            id,
+            type_id,
             value_type_name=value_type.type_name,
             value_type_unit=value_type.type_unit
         )
-        return read_type(id)
+        return read_type(type_id)
     except crud.NoResultFound:
         raise HTTPException(status_code=404, detail="Item not found")
 
@@ -88,7 +92,9 @@ def put_type(id, value_type: ApiTypes.ValueTypeNoID) -> ApiTypes.ValueType:
 def get_values(
     type_id: int = None,
     start: int = None,
-    end: int = None
+    end: int = None,
+    order: str = None,
+    asc: bool = None
 ) -> List[ApiTypes.Value]:
     """Get values from the database. The default is to return all available
     values. This result can be filtered.
@@ -109,10 +115,10 @@ def get_values(
     """
     global crud
     try:
-        values = crud.get_values(type_id, start, end)
+        values = crud.get_values(type_id, start, end, order, asc)
         return values
     except crud.NoResultFound:
-        raise HTTPException(status_code=404, deltail="Item not found")
+        raise HTTPException(status_code=404, detail="Item not found")
 
 
 @app.post("/value/")
@@ -137,6 +143,19 @@ def read_devices() -> List[ApiTypes.Device]:
     """
     global crud
     return crud.get_devices()
+
+
+@app.get("/average/{type_id}/")
+def get_average(type_id, start: int = None, end: int = None) -> float:
+    if (bool(start) ^ bool(end)):
+        raise ValueError("Both start and end need to be a valid timestamp.")
+
+    values = crud.get_values(type_id, start, end)
+
+    if (len(values) > 0):
+        return sum([value.value for value in values]) / len(values)
+    else:
+        return 0
 
 
 @app.on_event("startup")

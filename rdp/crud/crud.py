@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.orm import Session
 
-from .model import Base, Value, ValueType, Device
+from .model import Base, Device, Value, ValueType
 
 
 class Crud:
@@ -38,8 +38,8 @@ class Crud:
         with Session(self._engine) as session:
             stmt = select(ValueType).where(ValueType.id == value_type_id)
             db_type = None
-            for type in session.scalars(stmt):
-                db_type = type
+            for value_type in session.scalars(stmt):
+                db_type = value_type
             if db_type is None:
                 db_type = ValueType(id=value_type_id)
             if value_type_name:
@@ -109,14 +109,19 @@ class Crud:
             return session.scalars(stmt).one()
 
     def get_values(
-        self, value_type_id: int = None, start: int = None, end: int = None
+        self,
+        value_type_id: int = None,
+        start: int = None,
+        end: int = None,
+        order_attr: str = "value_type_id",
+        asc: bool = True
     ) -> List[Value]:
         """Get Values from database.
 
-        The result can be filtered by the following paramater:
+        The result can be filtered by the following parameters:
 
         Args:
-            value_type_id (int, optional): If set, only value of this given
+            value_type_id (int, optional): If set, only values of this given
             type will be returned. Defaults to None.
             start (int, optional): If set, only values with a timestamp as
             least as big as start are returned. Defaults to None.
@@ -124,7 +129,7 @@ class Crud:
             as big as end are returned. Defaults to None.
 
         Returns:
-            List[Value]: _description_
+            List[Value]: List of values matching the criteria.
         """
         with Session(self._engine) as session:
             stmt = select(Value)
@@ -135,11 +140,19 @@ class Crud:
                 stmt = stmt.where(Value.time >= start)
             if end is not None:
                 stmt = stmt.where(Value.time <= end)
-            stmt = stmt.order_by(Value.time)
+            if order_attr:
+                order_column = getattr(Value, order_attr)
+                stmt = stmt.order_by(order_column)
+
             logging.error(start)
             logging.error(stmt)
 
-            return session.scalars(stmt).all()
+            obj = list(session.execute(stmt).scalars().all())
+
+            if not asc:
+                obj.reverse()
+
+            return obj
 
     def get_devices(self) -> List[Device]:
         """Get all configured devices
