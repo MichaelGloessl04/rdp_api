@@ -113,7 +113,7 @@ class Crud:
         value_type_id: int = None,
         start: int = None,
         end: int = None,
-        order_attr: str = "value_type_id",
+        order_attr: str = "time",
         asc: bool = True
     ) -> List[Value]:
         """Get Values from database.
